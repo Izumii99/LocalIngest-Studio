@@ -1,0 +1,84 @@
+---
+exclude_paths:
+  - ".github/**"
+  - "dist/**"
+  - "dist-electron/**"
+  - "release/**"
+  - "node_modules/**"
+  - "coverage/**"
+  - "tools/**"
+  - "references/**"
+  - "**.min.js"
+  - "**.min.css"
+  - "**.md"
+
+engines:
+  eslint:
+    enabled: true
+    config: .eslintrc.json
+    exclude_paths:
+      - ".github/**"
+      - "dist/**"
+      - "dist-electron/**"
+      - "release/**"
+      - "node_modules/**"
+      - "coverage/**"
+      - "tools/**"
+      - "references/**"
+      - "**.min.js"
+      - "**.min.css"
+  semgrep:
+    enabled: false
+    exclude_paths:
+      - ".github/**"
+      - "dist/**"
+      - "dist-electron/**"
+      - "release/**"
+      - "node_modules/**"
+  duplication:
+    exclude_paths:
+      - ".github/**"
+      - "dist/**"
+      - "dist-electron/**"
+      - "release/**"
+      - "node_modules/**"
+      - "coverage/**"
+      - "tools/**"
+      - "references/**"
+      - "**.min.js"
+      - "**.min.css"
+  metric:
+    exclude_paths:
+      - ".github/**"
+      - "dist/**"
+      - "dist-electron/**"
+      - "release/**"
+      - "node_modules/**"
+      - "coverage/**"
+      - "tools/**"
+      - "references/**"
+      - "**.min.js"
+      - "**.min.css"
+
+languages:
+  typescript:
+    exclude_paths:
+      - ".github/**"
+      - "dist/**"
+      - "dist-electron/**"
+      - "release/**"
+      - "node_modules/**"
+  javascript:
+    exclude_paths:
+      - ".github/**"
+      - "dist/**"
+      - "dist-electron/**"
+      - "release/**"
+      - "node_modules/**"
+      - "**.min.js"
+  css:
+    exclude_paths:
+      - "dist/**"
+      - "release/**"
+      - "node_modules/**"
+      - "**.min.css"
