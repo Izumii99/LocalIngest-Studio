@@ -1,0 +1,165 @@
+name: 'Build and Release'
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+*'
+      - 'v[0-9]+.[0-9]+*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version / tag (e.g. 1.0.0)'
+        required: false
+        default: '1.0.0'
+        type: string
+      title:
+        description: 'Release Title Highlight'
+        required: false
+        default: 'Craft Cardboard UI, Multi-Platform (Windows & Linux), Git-Aware & Secrets Redaction'
+        type: string
+      notes:
+        description: 'Custom Release Notes (leave empty to use RELEASE_NOTES.md)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows Standalone Executables
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Engine Self-Checks
+        run: npm run test:engine
+
+      - name: Package Windows Standalone Binaries (Portable & Setup)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run package:all
+
+      - name: Upload Windows Binaries Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: |
+            release/*.exe
+          retention-days: 1
+
+  build-linux:
+    name: Build Linux Standalone AppImage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Engine Self-Checks
+        run: npm run test:engine
+
+      - name: Package Linux Standalone AppImage
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run package:linux
+
+      - name: Upload Linux Binaries Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: |
+            release/*.AppImage
+          retention-days: 1
+
+  publish-release:
+    name: Publish Multi-Platform GitHub Release
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Windows Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-binaries
+          path: release
+
+      - name: Download Linux Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-binaries
+          path: release
+
+      - name: Generate SHA-256 Checksums
+        run: |
+          cd release
+          sha256sum *.exe *.AppImage > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish Release to GitHub
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_TITLE: ${{ inputs.title }}
+          INPUT_NOTES: ${{ inputs.notes }}
+        run: |
+          # Determine version
+          if [ -n "$INPUT_VERSION" ]; then
+            VER=$(echo "$INPUT_VERSION" | sed 's/^v//')
+          elif [ -n "$GITHUB_REF_NAME" ]; then
+            VER=$(echo "$GITHUB_REF_NAME" | sed 's/^v//')
+          else
+            VER="1.0.0"
+          fi
+
+          TAG="v$VER"
+          TITLE="${INPUT_TITLE:-Craft Cardboard UI, Multi-Platform (Windows & Linux), Git-Aware & Secrets Redaction}"
+          RELEASE_TITLE="$TAG - $TITLE"
+
+          # Push tag if not present
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "$TAG"
+          git push origin "$TAG" --force
+
+          # Prepare release notes
+          if [ -n "$INPUT_NOTES" ]; then
+            echo "$INPUT_NOTES" > RELEASE_NOTES.md
+          fi
+
+          # Collect assets
+          ASSETS=(release/*.exe release/*.AppImage release/SHA256SUMS.txt)
+          echo "Assets to publish: ${ASSETS[*]}"
+
+          # Check if release already exists
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists. Updating release notes and re-uploading assets..."
+            gh release edit "$TAG" --title "$RELEASE_TITLE" --notes-file RELEASE_NOTES.md
+            gh release upload "$TAG" "${ASSETS[@]}" --clobber
+          else
+            echo "Creating new release for $TAG..."
+            gh release create "$TAG" --title "$RELEASE_TITLE" --notes-file RELEASE_NOTES.md "${ASSETS[@]}"
+          fi

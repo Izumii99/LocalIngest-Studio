@@ -1,0 +1,81 @@
+{
+  "name": "localingest-studio",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local Codebase-to-LLM Context Engine with Interactive 3-State Checkbox File Tree",
+  "author": "Izumii99",
+  "license": "MIT",
+  "main": "dist-electron/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "electron .",
+    "dev": "vite",
+    "dev:web": "vite --mode web",
+    "build": "tsc && vite build",
+    "build:exe": "npm run build && electron-builder --win portable",
+    "build:portable": "npm run build && electron-builder --win portable",
+    "package:portable": "npm run build && electron-builder --win portable",
+    "package:all": "npm run build && electron-builder --win portable nsis",
+    "package:linux": "npm run build && electron-builder --linux AppImage",
+    "test:engine": "node --experimental-strip-types electron/services/self-check.ts"
+  },
+  "build": {
+    "appId": "com.izumii.localingest",
+    "productName": "LocalIngest-Studio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "icon": "public/logo.png",
+      "target": [
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-v${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "deleteAppDataOnUninstall": true,
+      "artifactName": "${productName}-Setup-v${version}.${ext}"
+    },
+    "linux": {
+      "icon": "public/logo.png",
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development",
+      "artifactName": "${productName}-Linux-v${version}.${ext}"
+    },
+    "appImage": {
+      "artifactName": "${productName}-Linux-v${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-electron": "^1.1.2",
+    "vite-plugin-electron-renderer": "^1.0.0"
+  },
+  "dependencies": {
+    "ignore": "^7.0.14",
+    "js-tiktoken": "^1.0.21",
+    "lucide-react": "^1.62.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

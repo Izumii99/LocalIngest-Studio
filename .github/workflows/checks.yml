@@ -1,0 +1,41 @@
+name: CI & Engine Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build & Run Engine Self-Checks
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck TypeScript
+        run: npx tsc --noEmit
+
+      - name: Run Engine Self-Checks (Tokenizer, Secrets, Formatter)
+        run: npm run test:engine
+
+      - name: Verify Production Vite Bundle
+        run: npm run build

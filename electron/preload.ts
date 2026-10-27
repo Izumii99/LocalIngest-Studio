@@ -1,0 +1,18 @@
+import { contextBridge, ipcRenderer } from 'electron';
+import type { ElectronAPI, ScanOptions } from '../src/types/index.ts';
+
+const api: ElectronAPI = {
+  selectDirectory: () => ipcRenderer.invoke('dialog:selectDirectory'),
+  scanDirectory: (rootPath: string, options?: ScanOptions) =>
+    ipcRenderer.invoke('fs:scanDirectory', rootPath, options),
+  readFilesContent: (filePaths: string[]) =>
+    ipcRenderer.invoke('fs:readFilesContent', filePaths),
+  saveOutputFile: (defaultFileName: string, content: string) =>
+    ipcRenderer.invoke('dialog:saveFile', defaultFileName, content),
+  copyToClipboard: (text: string) =>
+    ipcRenderer.invoke('clipboard:write', text),
+  getGitStatus: (rootPath: string) =>
+    ipcRenderer.invoke('git:status', rootPath),
+};
+
+contextBridge.exposeInMainWorld('electronAPI', api);
