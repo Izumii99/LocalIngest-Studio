@@ -13,6 +13,10 @@ const api: ElectronAPI = {
     ipcRenderer.invoke('clipboard:write', text),
   getGitStatus: (rootPath: string) =>
     ipcRenderer.invoke('git:status', rootPath),
+  getPreferences: () =>
+    ipcRenderer.invoke('preferences:get'),
+  setPreferences: (prefs) =>
+    ipcRenderer.invoke('preferences:set', prefs),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', api);

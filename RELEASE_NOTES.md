@@ -1,60 +1,51 @@
 # LocalIngest Studio — Release Notes
 
-## Version 1.0.0 (Craft Cardboard & Neon Highlighter)
+## Version 1.0.1
 
-LocalIngest Studio is a local codebase-to-LLM context extraction engine designed to turn your project repository into clean, structured XML, Markdown, or Plain Text prompts for Google Gemini, Claude, and GPT-4o.
+This update improves reliability and saves your settings between sessions so you can jump right back into your workflow without reconfiguring.
 
----
+### What's New & Fixed:
 
-### Highlights & Key Features:
+- **Recent Folders Now Stay Saved After Closing the App**:
+  - Fixed an issue where previously opened folders would disappear from the "Recent Folders" list after closing the app.
+  - Your history now saves reliably across all versions: Windows Portable (`.exe`), Windows Installer (`setup.exe`), and Linux (`.AppImage`).
 
-- **Multi-Platform Desktop (Windows & Linux AppImage)**:
-  - Windows: Zero-installation, self-contained single executable (`LocalIngest-Studio-Portable-v1.0.0.exe`, ~107MB) and one-click setup installer.
-  - Linux: Clean, standalone `.AppImage` (`LocalIngest-Studio-Linux-v1.0.0.AppImage`) without complex package dependencies or tarball extraction.
-
-- **Craft Cardboard & Neon Highlighter Aesthetic**:
-  - Immersive craft cardboard dark palette (`#0e0d0c` kraft base with texture dots).
-  - Tactile striped washi tape tags, brutalist zero-blur marker shadows, and hand-sketched organic borders.
-  - Interactive felt-tip marker slider for file size filtering and fluorescent highlighter indicators.
-
-- **Interactive 3-State Checkbox File Tree**:
-  - Full tri-state (checked, unchecked, partial/indeterminate) recursive directory selection.
-  - Quick-filter extension pills (`.ts`, `.tsx`, `.json`, `.css`, `-Tests`).
-  - **Git-Aware Selection**: One-click selection for modified or unstaged files (`git status --porcelain`).
-
-- **Security & Secret Redaction (Zero-Leak)**:
-  - Built-in real-time secret scanner detecting API keys (OpenAI, Anthropic, HuggingFace, GitHub, AWS, Slack, Private Keys, JWTs).
-  - Automated `[REDACTED_SECRET: TYPE]` mask to protect credentials before copying to AI prompts.
-
-- **GitIngest-Style Discrete Max File Size Threshold**:
-  - Stepped limits from 10 KB, 20 KB, 50 KB, 100 KB up to 100 MB and Unlimited.
-  - Large assets or binaries automatically excluded with a sticker warning badge (`>100KB`).
-
-- **Persistent Recent Folders Cache & Dropdown**:
-  - Automatically caches recently opened project directories locally across application restarts.
-  - Tactile dropdown menu right next to "Open Folder" featuring craft memo styling, washi tape accent, folder badges, and one-click history clearing.
-
-- **Instant Codebase Rescan & Refresh (F5 / Ctrl+R)**:
-  - Added tactile refresh buttons on both the top header bar and file tree action strip.
-  - Automatically purges cached file contents on refresh so disk modifications and Git changes re-sync immediately without application restarts or window reload flickers.
-
-- **Security & Path Traversal Hardening**:
-  - Strict path boundary verification in recursive scanner service to eliminate directory traversal risks and ensure 100% clean static analysis (Grade A on Codacy).
-
-- **Cyber-Craft Branding & Clean Desktop Layout**:
-  - Custom neon violet AI-generated isometric cube app icon embedded into window metadata, favicon, and executable packaging.
-  - Streamlined desktop header removing redundant window dots in favor of an integrated brand squircle badge.
-  - High-resolution interface showcase added to documentation assets.
-
-- **Real-Time Token Counter**:
-  - Accurate local tokenizer calculation using `js-tiktoken` (cl100k_base / o200k_base).
-  - Instant Est. Tokens counter with color thresholds (Mint `<32k`, Yellow `<128k`, Coral `>128k`).
+- **Remember Last Used File Size Limit**:
+  - The Max File Size filter now remembers your last setting.
+  - If you change the limit to `1 MB`, `500 KB`, or `Unlimited`, the app will open with that same limit next time. Fresh installs start with a sensible `100 KB` default.
 
 ---
 
-### Downloads:
+## Version 1.0.0 (Initial Release)
 
-- **`LocalIngest-Studio-Portable-v1.0.0.exe` (~107MB) [Windows Portable]**: Standalone single-file executable for Windows 10/11. No installer needed.
-- **`LocalIngest-Studio-Setup-v1.0.0.exe` (~125MB) [Windows Setup]**: One-click setup installer with Windows Start Menu and Desktop shortcuts.
-- **`LocalIngest-Studio-Linux-v1.0.0.AppImage` (~105MB) [Linux Portable]**: Standalone single-file AppImage for modern Linux distributions (Ubuntu, Debian, Fedora, Arch Linux). Just `chmod +x` and run.
+LocalIngest Studio is a fast, offline desktop app that packages your local code into clean, organized prompts for AI assistants like Google Gemini, Claude, and ChatGPT.
+
+### Highlights:
+
+- **Ready to Run on Windows & Linux**:
+  - Download and run immediately without setup using the portable `.exe` on Windows or `.AppImage` on Linux. A standard installer is also available.
+- **Craft Paper & Dark Mode Interface**:
+  - Designed with an eye-friendly dark craft palette, subtle highlighter accents, and clear typography.
+- **Interactive File Explorer**:
+  - Check or uncheck folders with automatic sub-item selection.
+  - Quick-filter buttons to include or exclude specific file types (like `.ts`, `.json`, `.css`, or test files).
+- **Git-Aware Selection**:
+  - Select only files you've recently modified or added with a single click.
+- **Automatic Secret Redaction**:
+  - Automatically detects and hides sensitive items like API keys and private tokens before you copy code to an AI prompt.
+- **Smart File Size Filtering**:
+  - Easily exclude oversized files or media with an adjustable slider so your prompts stay compact.
+- **Built-in Token Counter**:
+  - See estimated AI token counts in real time before copying or exporting your project.
+- **One-Click Refresh (F5 / Ctrl+R)**:
+  - Quickly re-scan your project to pick up newly saved files without restarting the app.
+
+---
+
+### Downloads (v1.0.1):
+
+- **`LocalIngest-Studio-Portable-v1.0.1.exe` (~109 MB)**: Standalone portable version for Windows 10/11. No installation required.
+- **`LocalIngest-Studio-Setup-v1.0.1.exe` (~127 MB)**: Standard Windows installer with desktop and start menu shortcuts.
+- **`LocalIngest-Studio-Linux-v1.0.1.AppImage` (~105 MB)**: Standalone single-file executable for Linux.
+
 

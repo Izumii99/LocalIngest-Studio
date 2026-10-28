@@ -1,7 +1,7 @@
 {
   "name": "localingest-studio",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Local Codebase-to-LLM Context Engine with Interactive 3-State Checkbox File Tree",
   "author": "Izumii99",
   "license": "MIT",

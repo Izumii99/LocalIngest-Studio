@@ -48,6 +48,11 @@ export interface IngestConfig {
   redactSecrets: boolean;
 }
 
+export interface AppPreferences {
+  recentFolders: string[];
+  maxFileSizeKB: number;
+}
+
 export interface ElectronAPI {
   selectDirectory: () => Promise<string | null>;
   scanDirectory: (rootPath: string, options?: ScanOptions) => Promise<FileNode>;
@@ -55,6 +60,8 @@ export interface ElectronAPI {
   saveOutputFile: (defaultFileName: string, content: string) => Promise<boolean>;
   copyToClipboard: (text: string) => Promise<void>;
   getGitStatus: (rootPath: string) => Promise<GitStatusResult>;
+  getPreferences: () => Promise<AppPreferences>;
+  setPreferences: (prefs: Partial<AppPreferences>) => Promise<AppPreferences>;
 }
 
 declare global {

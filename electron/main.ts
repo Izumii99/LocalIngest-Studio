@@ -4,7 +4,9 @@ import * as fs from 'fs/promises';
 import * as syncFs from 'fs';
 import { fileURLToPath } from 'url';
 import { scanDirectory } from './services/scanner.ts';
-import type { ScanOptions } from '../src/types/index.ts';
+import type { ScanOptions, AppPreferences } from '../src/types/index.ts';
+
+app.name = 'LocalIngest-Studio';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -160,3 +162,96 @@ ipcMain.handle('git:status', async (_event, rootPath: string) => {
     return { isGit: false, changedFiles: [] };
   }
 });
+
+// Preferences Storage Helper
+function getPreferencesFilePath(): string {
+  if (process.env.PORTABLE_EXECUTABLE_DIR) {
+    const portablePath = path.join(process.env.PORTABLE_EXECUTABLE_DIR, '.localingest-config.json');
+    try {
+      syncFs.accessSync(process.env.PORTABLE_EXECUTABLE_DIR, syncFs.constants.W_OK);
+      return portablePath;
+    } catch {
+      // Directory is not writable, fallback to standard userData
+    }
+  }
+
+  const userDataDir = app.getPath('userData');
+  if (!syncFs.existsSync(userDataDir)) {
+    try {
+      syncFs.mkdirSync(userDataDir, { recursive: true });
+    } catch {}
+  }
+  return path.join(userDataDir, 'preferences.json');
+}
+
+async function loadPreferences(): Promise<AppPreferences> {
+  const primaryPath = getPreferencesFilePath();
+  const fallbackPath = path.join(app.getPath('userData'), 'preferences.json');
+  const candidates = Array.from(new Set([primaryPath, fallbackPath]));
+
+  for (const targetPath of candidates) {
+    try {
+      if (syncFs.existsSync(targetPath)) {
+        const raw = await fs.readFile(targetPath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        return {
+          recentFolders: Array.isArray(parsed.recentFolders) ? parsed.recentFolders : [],
+          maxFileSizeKB:
+            typeof parsed.maxFileSizeKB === 'number' && parsed.maxFileSizeKB > 0
+              ? parsed.maxFileSizeKB
+              : 100,
+        };
+      }
+    } catch {
+      // Continue to next candidate
+    }
+  }
+
+  return {
+    recentFolders: [],
+    maxFileSizeKB: 100,
+  };
+}
+
+async function savePreferences(prefs: Partial<AppPreferences>): Promise<AppPreferences> {
+  const current = await loadPreferences();
+  const updated: AppPreferences = {
+    recentFolders: Array.isArray(prefs.recentFolders) ? prefs.recentFolders : current.recentFolders,
+    maxFileSizeKB:
+      typeof prefs.maxFileSizeKB === 'number' && prefs.maxFileSizeKB > 0
+        ? prefs.maxFileSizeKB
+        : current.maxFileSizeKB,
+  };
+
+  const targetPath = getPreferencesFilePath();
+  try {
+    const dir = path.dirname(targetPath);
+    if (!syncFs.existsSync(dir)) {
+      syncFs.mkdirSync(dir, { recursive: true });
+    }
+    await fs.writeFile(targetPath, JSON.stringify(updated, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed to save preferences to primary target:', err);
+    try {
+      const fallbackDir = app.getPath('userData');
+      if (!syncFs.existsSync(fallbackDir)) {
+        syncFs.mkdirSync(fallbackDir, { recursive: true });
+      }
+      await fs.writeFile(path.join(fallbackDir, 'preferences.json'), JSON.stringify(updated, null, 2), 'utf-8');
+    } catch (fallbackErr) {
+      console.error('Failed to save preferences to fallback target:', fallbackErr);
+    }
+  }
+
+  return updated;
+}
+
+// IPC Handlers: Preferences
+ipcMain.handle('preferences:get', async () => {
+  return await loadPreferences();
+});
+
+ipcMain.handle('preferences:set', async (_event, prefs: Partial<AppPreferences>) => {
+  return await savePreferences(prefs);
+});
+

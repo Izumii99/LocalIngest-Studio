@@ -20,8 +20,15 @@ export const App: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Feature options: Max file size limit & Secret redaction
-  const [maxFileSizeKB, setMaxFileSizeKB] = useState<number>(100);
+  // Feature options: Max file size limit & Secret redaction (persisted via native Electron & localStorage)
+  const [maxFileSizeKB, setMaxFileSizeKB] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('localingest_max_file_size_kb');
+      return saved ? Number(saved) : 100;
+    } catch {
+      return 100;
+    }
+  });
   const [redactSecrets, setRedactSecrets] = useState<boolean>(true);
   const [gitChangedFiles, setGitChangedFiles] = useState<string[]>([]);
 
@@ -35,14 +42,42 @@ export const App: React.FC = () => {
     }
   });
 
+  // On mount: Hydrate persistent preferences from native backend
+  useEffect(() => {
+    if (window.electronAPI?.getPreferences) {
+      window.electronAPI
+        .getPreferences()
+        .then((prefs) => {
+          if (prefs) {
+            if (Array.isArray(prefs.recentFolders)) {
+              setRecentFolders(prefs.recentFolders);
+              try {
+                localStorage.setItem('localingest_recent_folders', JSON.stringify(prefs.recentFolders));
+              } catch {}
+            }
+            if (typeof prefs.maxFileSizeKB === 'number' && prefs.maxFileSizeKB > 0) {
+              setMaxFileSizeKB(prefs.maxFileSizeKB);
+              try {
+                localStorage.setItem('localingest_max_file_size_kb', String(prefs.maxFileSizeKB));
+              } catch {}
+            }
+          }
+        })
+        .catch((err) => {
+          console.warn('Native preferences load warning:', err);
+        });
+    }
+  }, []);
+
   const addRecentFolder = useCallback((folderPath: string) => {
     setRecentFolders((prev) => {
       const filtered = prev.filter((p) => p !== folderPath);
       const updated = [folderPath, ...filtered].slice(0, 8);
       try {
         localStorage.setItem('localingest_recent_folders', JSON.stringify(updated));
-      } catch {
-        // ignore storage errors
+      } catch {}
+      if (window.electronAPI?.setPreferences) {
+        window.electronAPI.setPreferences({ recentFolders: updated }).catch(console.error);
       }
       return updated;
     });
@@ -52,8 +87,19 @@ export const App: React.FC = () => {
     setRecentFolders([]);
     try {
       localStorage.removeItem('localingest_recent_folders');
-    } catch {
-      // ignore
+    } catch {}
+    if (window.electronAPI?.setPreferences) {
+      window.electronAPI.setPreferences({ recentFolders: [] }).catch(console.error);
+    }
+  }, []);
+
+  const handleMaxFileSizeChange = useCallback((newSizeKB: number) => {
+    setMaxFileSizeKB(newSizeKB);
+    try {
+      localStorage.setItem('localingest_max_file_size_kb', String(newSizeKB));
+    } catch {}
+    if (window.electronAPI?.setPreferences) {
+      window.electronAPI.setPreferences({ maxFileSizeKB: newSizeKB }).catch(console.error);
     }
   }, []);
 
@@ -424,7 +470,7 @@ export const App: React.FC = () => {
               isCopied={isCopied}
               isExporting={isExporting}
               maxFileSizeKB={maxFileSizeKB}
-              onMaxFileSizeChange={setMaxFileSizeKB}
+              onMaxFileSizeChange={handleMaxFileSizeChange}
               secretsCount={secretsFindings.length}
             />
 
@@ -446,7 +492,12 @@ export const App: React.FC = () => {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         options={scanOptions}
-        onOptionsChange={setScanOptions}
+        onOptionsChange={(newOpts) => {
+          setScanOptions(newOpts);
+          if (newOpts.maxFileSizeKB !== undefined && newOpts.maxFileSizeKB !== maxFileSizeKB) {
+            handleMaxFileSizeChange(newOpts.maxFileSizeKB);
+          }
+        }}
         onApplyAndRescan={() => {
           if (currentPath) {
             performScan(currentPath, scanOptions);

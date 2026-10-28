@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version / tag (e.g. 1.0.0)'
+        description: 'Release version / tag (e.g. 1.0.1)'
         required: false
-        default: '1.0.0'
+        default: '1.0.1'
         type: string
       title:
         description: 'Release Title Highlight'
@@ -132,7 +132,7 @@ jobs:
           elif [ -n "$GITHUB_REF_NAME" ]; then
             VER=$(echo "$GITHUB_REF_NAME" | sed 's/^v//')
           else
-            VER="1.0.0"
+            VER="1.0.1"
           fi
 
           TAG="v$VER"

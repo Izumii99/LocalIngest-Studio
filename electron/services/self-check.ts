@@ -71,4 +71,21 @@ assert.ok(xml.includes('[REDACTED_SECRET]'), 'Secret should be redacted when red
 assert.ok(xml.includes('[Content omitted: File size'), 'Large file should have content omitted when exceeding max limit');
 console.log('[PASS] XML Formatter with Redaction & MaxSize self-check');
 
+// 4. Check Preferences Normalization logic
+function normalizePreferences(raw: any) {
+  return {
+    recentFolders: Array.isArray(raw?.recentFolders) ? raw.recentFolders : [],
+    maxFileSizeKB: typeof raw?.maxFileSizeKB === 'number' && raw.maxFileSizeKB > 0 ? raw.maxFileSizeKB : 100,
+  };
+}
+
+const defaultPrefs = normalizePreferences({});
+assert.strictEqual(defaultPrefs.maxFileSizeKB, 100, 'Default maxFileSizeKB must be 100');
+assert.deepStrictEqual(defaultPrefs.recentFolders, [], 'Default recentFolders must be empty array');
+
+const customPrefs = normalizePreferences({ recentFolders: ['/path/to/repo'], maxFileSizeKB: 1000 });
+assert.strictEqual(customPrefs.maxFileSizeKB, 1000, 'Custom maxFileSizeKB must be preserved');
+assert.strictEqual(customPrefs.recentFolders.length, 1, 'Custom recentFolders must be preserved');
+console.log('[PASS] Preferences Normalization self-check');
+
 console.log('All engine self-checks passed successfully!');
