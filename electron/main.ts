@@ -78,16 +78,37 @@ app.on('window-all-closed', () => {
 });
 
 // IPC Handler: Directory Picker
-ipcMain.handle('dialog:selectDirectory', async () => {
+ipcMain.handle('dialog:selectDirectory', async (_event, defaultPath?: string) => {
   if (!mainWindow) return null;
+
+  let initialPath =
+    typeof defaultPath === 'string' && defaultPath.trim() ? defaultPath.trim() : undefined;
+
+  if (!initialPath || !syncFs.existsSync(initialPath)) {
+    const prefs = await loadPreferences();
+    if (prefs.lastOpenedFolder && syncFs.existsSync(prefs.lastOpenedFolder)) {
+      initialPath = prefs.lastOpenedFolder;
+    } else if (
+      prefs.recentFolders &&
+      prefs.recentFolders.length > 0 &&
+      syncFs.existsSync(prefs.recentFolders[0])
+    ) {
+      initialPath = prefs.recentFolders[0];
+    }
+  }
+
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory'],
     title: 'Select Project Directory to Ingest',
+    defaultPath: initialPath,
   });
   if (result.canceled || result.filePaths.length === 0) {
     return null;
   }
-  return result.filePaths[0];
+
+  const chosenPath = result.filePaths[0];
+  await savePreferences({ lastOpenedFolder: chosenPath });
+  return chosenPath;
 });
 
 // IPC Handler: Scan Directory
@@ -200,6 +221,16 @@ async function loadPreferences(): Promise<AppPreferences> {
             typeof parsed.maxFileSizeKB === 'number' && parsed.maxFileSizeKB > 0
               ? parsed.maxFileSizeKB
               : 100,
+          lastOpenedFolder:
+            typeof parsed.lastOpenedFolder === 'string' && parsed.lastOpenedFolder.trim()
+              ? parsed.lastOpenedFolder.trim()
+              : undefined,
+          fileSelectionCache:
+            parsed.fileSelectionCache &&
+            typeof parsed.fileSelectionCache === 'object' &&
+            !Array.isArray(parsed.fileSelectionCache)
+              ? parsed.fileSelectionCache
+              : {},
         };
       }
     } catch {
@@ -210,6 +241,7 @@ async function loadPreferences(): Promise<AppPreferences> {
   return {
     recentFolders: [],
     maxFileSizeKB: 100,
+    fileSelectionCache: {},
   };
 }
 
@@ -221,6 +253,14 @@ async function savePreferences(prefs: Partial<AppPreferences>): Promise<AppPrefe
       typeof prefs.maxFileSizeKB === 'number' && prefs.maxFileSizeKB > 0
         ? prefs.maxFileSizeKB
         : current.maxFileSizeKB,
+    lastOpenedFolder:
+      typeof prefs.lastOpenedFolder === 'string'
+        ? prefs.lastOpenedFolder
+        : current.lastOpenedFolder,
+    fileSelectionCache:
+      prefs.fileSelectionCache && typeof prefs.fileSelectionCache === 'object'
+        ? { ...current.fileSelectionCache, ...prefs.fileSelectionCache }
+        : current.fileSelectionCache,
   };
 
   const targetPath = getPreferencesFilePath();

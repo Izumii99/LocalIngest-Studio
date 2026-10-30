@@ -27,7 +27,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       {/* Live Preview Card Header */}
       <div className="bg-craft-850 px-4 py-2.5 border-b-2 border-craft-700 flex items-center justify-between flex-wrap gap-2 shrink-0 select-none">
         <div className="flex items-center gap-2">
-          <span className="text-neon-lilac">👁️</span>
           <h2 className="text-xs font-bold font-mono tracking-wide text-stone-200 uppercase">
             Context Live Preview
           </h2>
@@ -63,7 +62,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
           {/* ASCII Tree Toggle */}
           <label
-            className="flex items-center gap-1.5 cursor-pointer bg-craft-950 px-2 py-1 rounded-md border border-craft-750 hover:border-craft-600 transition-colors"
+            className="flex items-center gap-1.5 cursor-pointer bg-craft-950 px-2.5 py-1 rounded-md border border-craft-750 hover:border-craft-600 transition-colors"
             title="Include ASCII directory tree in merged context"
           >
             <input
@@ -73,9 +72,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               className="rounded text-neon-lilac focus:ring-0 w-3.5 h-3.5 bg-craft-850 border-craft-600 cursor-pointer"
               id="toggle-ascii-tree"
             />
-            <span className="text-[11px] font-mono text-stone-300 flex items-center gap-1 select-none">
-              <span>🌲</span>
-              <span>ASCII Tree</span>
+            <span className="text-[11px] font-mono text-stone-300 select-none">
+              ASCII Tree
             </span>
           </label>
         </div>

@@ -61,6 +61,15 @@ export const App: React.FC = () => {
                 localStorage.setItem('localingest_max_file_size_kb', String(prefs.maxFileSizeKB));
               } catch {}
             }
+            if (prefs.fileSelectionCache && typeof prefs.fileSelectionCache === 'object') {
+              try {
+                const localCache = JSON.parse(
+                  localStorage.getItem('localingest_file_selection_cache') || '{}'
+                );
+                const merged = { ...prefs.fileSelectionCache, ...localCache };
+                localStorage.setItem('localingest_file_selection_cache', JSON.stringify(merged));
+              } catch {}
+            }
           }
         })
         .catch((err) => {
@@ -140,7 +149,7 @@ export const App: React.FC = () => {
     toggleByExtension,
     excludeTestFiles,
     selectGitChanged,
-  } = useFileTree(rootNode, maxFileSizeKB);
+  } = useFileTree(rootNode, maxFileSizeKB, currentPath);
 
   // Secret scanner
   const secretsFindings = useMemo(() => {
@@ -154,7 +163,7 @@ export const App: React.FC = () => {
       let selectedDir: string | null = null;
 
       if (window.electronAPI) {
-        selectedDir = await window.electronAPI.selectDirectory();
+        selectedDir = await window.electronAPI.selectDirectory(currentPath || undefined);
       } else {
         selectedDir = prompt('Enter absolute project directory path to scan:');
       }
@@ -199,7 +208,11 @@ export const App: React.FC = () => {
       if (window.electronAPI) {
         const tree = await window.electronAPI.scanDirectory(dirPath, options);
         setRootNode(tree);
+        setCurrentPath(dirPath);
         addRecentFolder(dirPath);
+        if (window.electronAPI.setPreferences) {
+          window.electronAPI.setPreferences({ lastOpenedFolder: dirPath }).catch(console.error);
+        }
 
         // Check Git status
         try {

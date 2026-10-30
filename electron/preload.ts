@@ -2,7 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { ElectronAPI, ScanOptions } from '../src/types/index.ts';
 
 const api: ElectronAPI = {
-  selectDirectory: () => ipcRenderer.invoke('dialog:selectDirectory'),
+  selectDirectory: (defaultPath?: string) =>
+    ipcRenderer.invoke('dialog:selectDirectory', defaultPath),
   scanDirectory: (rootPath: string, options?: ScanOptions) =>
     ipcRenderer.invoke('fs:scanDirectory', rootPath, options),
   readFilesContent: (filePaths: string[]) =>

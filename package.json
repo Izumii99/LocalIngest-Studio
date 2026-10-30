@@ -1,7 +1,7 @@
 {
   "name": "localingest-studio",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Local Codebase-to-LLM Context Engine with Interactive 3-State Checkbox File Tree",
   "author": "Izumii99",
   "license": "MIT",
@@ -39,9 +39,14 @@
       "artifactName": "${productName}-Portable-v${version}.${ext}"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "LocalIngest Studio",
+      "uninstallDisplayName": "LocalIngest Studio",
       "deleteAppDataOnUninstall": true,
       "artifactName": "${productName}-Setup-v${version}.${ext}"
     },

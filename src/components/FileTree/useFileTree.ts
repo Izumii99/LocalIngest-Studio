@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { FileNode, CheckState } from '../../types/index.ts';
 
 // Helper to collect all non-binary leaf files under a node
@@ -15,7 +15,44 @@ export function getDescendantFiles(node: FileNode): FileNode[] {
   return files;
 }
 
-export function useFileTree(rootNode: FileNode | null, maxFileSizeKB = 100) {
+// LocalStorage key for caching selected paths per project folder
+const SELECTION_CACHE_KEY = 'localingest_file_selection_cache';
+
+export function getSelectionCache(): Record<string, string[]> {
+  try {
+    const raw = localStorage.getItem(SELECTION_CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveSelectionCache(cache: Record<string, string[]>) {
+  try {
+    const keys = Object.keys(cache);
+    if (keys.length > 30) {
+      const trimmed: Record<string, string[]> = {};
+      for (const k of keys.slice(-30)) {
+        trimmed[k] = cache[k];
+      }
+      localStorage.setItem(SELECTION_CACHE_KEY, JSON.stringify(trimmed));
+      if (window.electronAPI?.setPreferences) {
+        window.electronAPI.setPreferences({ fileSelectionCache: trimmed }).catch(() => {});
+      }
+      return;
+    }
+    localStorage.setItem(SELECTION_CACHE_KEY, JSON.stringify(cache));
+    if (window.electronAPI?.setPreferences) {
+      window.electronAPI.setPreferences({ fileSelectionCache: cache }).catch(() => {});
+    }
+  } catch {}
+}
+
+export function useFileTree(
+  rootNode: FileNode | null,
+  maxFileSizeKB = 100,
+  currentPath: string | null = null
+) {
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set(['/', '']));
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,6 +62,71 @@ export function useFileTree(rootNode: FileNode | null, maxFileSizeKB = 100) {
     if (!rootNode) return [];
     return getDescendantFiles(rootNode);
   }, [rootNode]);
+
+  // Hydrate or restore selection cache when a folder is loaded or refreshed
+  useEffect(() => {
+    if (!rootNode || !currentPath) {
+      if (!currentPath && selectedPaths.size > 0) {
+        setSelectedPaths(new Set());
+      }
+      return;
+    }
+
+    if (allSelectableFiles.length === 0) {
+      setSelectedPaths(new Set());
+      return;
+    }
+
+    const selectableMap = new Set(allSelectableFiles.map((f) => f.relativePath));
+    const cache = getSelectionCache();
+    const cachedList = cache[currentPath];
+
+    if (cachedList !== undefined && Array.isArray(cachedList)) {
+      // Cache entry exists for this project folder! Restore exact user selections
+      const restored = new Set<string>();
+      for (const p of cachedList) {
+        if (selectableMap.has(p)) {
+          restored.add(p);
+        }
+      }
+      setSelectedPaths(restored);
+    } else {
+      // First time opening this project folder: default select all files within size limit
+      const next = new Set<string>();
+      const limitBytes = maxFileSizeKB > 0 ? maxFileSizeKB * 1024 : Infinity;
+      for (const file of allSelectableFiles) {
+        if ((file.size || 0) <= limitBytes) {
+          next.add(file.relativePath);
+        }
+      }
+      setSelectedPaths(next);
+      cache[currentPath] = Array.from(next);
+      saveSelectionCache(cache);
+    }
+  }, [rootNode, currentPath, allSelectableFiles]);
+
+  // Helper to persist selection for the current folder
+  const persistSelectionForPath = useCallback(
+    (paths: Set<string>) => {
+      if (!currentPath) return;
+      const cache = getSelectionCache();
+      cache[currentPath] = Array.from(paths);
+      saveSelectionCache(cache);
+    },
+    [currentPath]
+  );
+
+  // Helper to update selectedPaths AND persist to cache in one go
+  const updateSelection = useCallback(
+    (updater: (prev: Set<string>) => Set<string>) => {
+      setSelectedPaths((prev) => {
+        const next = updater(prev);
+        persistSelectionForPath(next);
+        return next;
+      });
+    },
+    [persistSelectionForPath]
+  );
 
   // Compute available extensions in this codebase (sorted by count)
   const availableExtensions = useMemo(() => {
@@ -69,7 +171,7 @@ export function useFileTree(rootNode: FileNode | null, maxFileSizeKB = 100) {
   // Toggle selection for a node (file or directory)
   const toggleNode = useCallback(
     (node: FileNode) => {
-      setSelectedPaths((prev) => {
+      updateSelection((prev) => {
         const next = new Set(prev);
         const descendants = getDescendantFiles(node);
 
@@ -95,31 +197,33 @@ export function useFileTree(rootNode: FileNode | null, maxFileSizeKB = 100) {
         return next;
       });
     },
-    [getNodeCheckState]
+    [getNodeCheckState, updateSelection]
   );
 
   // Select all non-binary files (smart skipping files exceeding maxFileSizeKB)
   const selectAll = useCallback(() => {
-    const next = new Set<string>();
-    const limitBytes = maxFileSizeKB > 0 ? maxFileSizeKB * 1024 : Infinity;
+    updateSelection(() => {
+      const next = new Set<string>();
+      const limitBytes = maxFileSizeKB > 0 ? maxFileSizeKB * 1024 : Infinity;
 
-    for (const file of allSelectableFiles) {
-      if ((file.size || 0) <= limitBytes) {
-        next.add(file.relativePath);
+      for (const file of allSelectableFiles) {
+        if ((file.size || 0) <= limitBytes) {
+          next.add(file.relativePath);
+        }
       }
-    }
-    setSelectedPaths(next);
-  }, [allSelectableFiles, maxFileSizeKB]);
+      return next;
+    });
+  }, [allSelectableFiles, maxFileSizeKB, updateSelection]);
 
   // Deselect all files
   const deselectAll = useCallback(() => {
-    setSelectedPaths(new Set());
-  }, []);
+    updateSelection(() => new Set<string>());
+  }, [updateSelection]);
 
   // Filter selection by extension
   const toggleByExtension = useCallback(
     (ext: string) => {
-      setSelectedPaths((prev) => {
+      updateSelection((prev) => {
         const next = new Set(prev);
         const matchingFiles = allSelectableFiles.filter((f) =>
           f.name.toLowerCase().endsWith(ext.toLowerCase())
@@ -136,13 +240,13 @@ export function useFileTree(rootNode: FileNode | null, maxFileSizeKB = 100) {
         return next;
       });
     },
-    [allSelectableFiles]
+    [allSelectableFiles, updateSelection]
   );
 
   // Deselect test files
   const excludeTestFiles = useCallback(() => {
     const testPattern = /(\.(test|spec)\.[a-z0-9]+$)|([/\\]__(tests|mocks)__[/\\])/i;
-    setSelectedPaths((prev) => {
+    updateSelection((prev) => {
       const next = new Set(prev);
       for (const path of prev) {
         if (testPattern.test(path)) {
@@ -151,7 +255,7 @@ export function useFileTree(rootNode: FileNode | null, maxFileSizeKB = 100) {
       }
       return next;
     });
-  }, []);
+  }, [updateSelection]);
 
   // Git-aware: Select only files changed in git
   const selectGitChanged = useCallback(
@@ -165,7 +269,7 @@ export function useFileTree(rootNode: FileNode | null, maxFileSizeKB = 100) {
         }
       }
 
-      setSelectedPaths(next);
+      updateSelection(() => next);
       // Auto expand folders of changed files
       setExpandedPaths((prev) => {
         const expanded = new Set(prev);
@@ -180,7 +284,7 @@ export function useFileTree(rootNode: FileNode | null, maxFileSizeKB = 100) {
         return expanded;
       });
     },
-    [allSelectableFiles]
+    [allSelectableFiles, updateSelection]
   );
 
   // Expand / collapse folder

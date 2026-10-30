@@ -76,16 +76,27 @@ function normalizePreferences(raw: any) {
   return {
     recentFolders: Array.isArray(raw?.recentFolders) ? raw.recentFolders : [],
     maxFileSizeKB: typeof raw?.maxFileSizeKB === 'number' && raw.maxFileSizeKB > 0 ? raw.maxFileSizeKB : 100,
+    lastOpenedFolder: typeof raw?.lastOpenedFolder === 'string' && raw.lastOpenedFolder.trim() ? raw.lastOpenedFolder.trim() : undefined,
+    fileSelectionCache: raw?.fileSelectionCache && typeof raw.fileSelectionCache === 'object' && !Array.isArray(raw.fileSelectionCache) ? raw.fileSelectionCache : {},
   };
 }
 
 const defaultPrefs = normalizePreferences({});
 assert.strictEqual(defaultPrefs.maxFileSizeKB, 100, 'Default maxFileSizeKB must be 100');
 assert.deepStrictEqual(defaultPrefs.recentFolders, [], 'Default recentFolders must be empty array');
+assert.strictEqual(defaultPrefs.lastOpenedFolder, undefined, 'Default lastOpenedFolder must be undefined');
+assert.deepStrictEqual(defaultPrefs.fileSelectionCache, {}, 'Default fileSelectionCache must be empty object');
 
-const customPrefs = normalizePreferences({ recentFolders: ['/path/to/repo'], maxFileSizeKB: 1000 });
+const customPrefs = normalizePreferences({
+  recentFolders: ['/path/to/repo'],
+  maxFileSizeKB: 1000,
+  lastOpenedFolder: '/path/to/repo',
+  fileSelectionCache: { '/path/to/repo': ['src/main.ts'] },
+});
 assert.strictEqual(customPrefs.maxFileSizeKB, 1000, 'Custom maxFileSizeKB must be preserved');
 assert.strictEqual(customPrefs.recentFolders.length, 1, 'Custom recentFolders must be preserved');
-console.log('[PASS] Preferences Normalization self-check');
+assert.strictEqual(customPrefs.lastOpenedFolder, '/path/to/repo', 'Custom lastOpenedFolder must be preserved');
+assert.deepStrictEqual(customPrefs.fileSelectionCache['/path/to/repo'], ['src/main.ts'], 'File selection cache must be preserved');
+console.log('[PASS] Preferences Normalization self-check (including lastOpenedFolder and fileSelectionCache)');
 
 console.log('All engine self-checks passed successfully!');

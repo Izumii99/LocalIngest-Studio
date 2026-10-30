@@ -1,5 +1,30 @@
 # LocalIngest Studio — Release Notes
 
+## Version 1.0.2
+
+This release introduces smart per-project file selection caching, remembers your last directory position in the folder picker, and streamlines the interface with a cleaner, distraction-free aesthetic.
+
+### What's New & Fixed:
+
+- **Per-Project File Selection Cache**:
+  - The files and folders you select in the left explorer are now cached per project.
+  - Refreshing your project (`F5` / `Ctrl+R`), switching between multiple repositories, or restarting the application now restores your exact file selections automatically.
+  - Unchecking all items or selecting custom subsets stays saved without resetting back to "select all".
+
+- **Folder Picker Remembers Last Directory**:
+  - Clicking "Open Folder" now remembers the last opened directory position as its initial browsing path instead of resetting to the system default root or Desktop.
+
+- **Universal Setup Wizard & Interactive Uninstaller**:
+  - `LocalIngest-Studio-Setup-v1.0.2.exe` now features a standard interactive setup wizard:
+    - Choose your custom installation folder or use the default location.
+    - Option to create Desktop and Start Menu shortcuts.
+  - The uninstaller now includes an explicit confirmation step ("Are you sure you want to uninstall?") followed by an animated deletion progress bar.
+
+- **Clean & Minimalist Interface Polish**:
+  - Removed decorative icons across the Live Preview header, ASCII Tree toggle, and explorer footer to deliver a clean, professional senior developer visual aesthetic.
+
+---
+
 ## Version 1.0.1
 
 This update improves reliability and saves your settings between sessions so you can jump right back into your workflow without reconfiguring.
@@ -42,10 +67,8 @@ LocalIngest Studio is a fast, offline desktop app that packages your local code 
 
 ---
 
-### Downloads (v1.0.1):
+### Downloads (v1.0.2):
 
-- **`LocalIngest-Studio-Portable-v1.0.1.exe` (~109 MB)**: Standalone portable version for Windows 10/11. No installation required.
-- **`LocalIngest-Studio-Setup-v1.0.1.exe` (~127 MB)**: Standard Windows installer with desktop and start menu shortcuts.
-- **`LocalIngest-Studio-Linux-v1.0.1.AppImage` (~105 MB)**: Standalone single-file executable for Linux.
-
-
+- **`LocalIngest-Studio-Portable-v1.0.2.exe` (~109 MB)**: Standalone portable version for Windows 10/11. No installation required.
+- **`LocalIngest-Studio-Setup-v1.0.2.exe` (~127 MB)**: Standard Windows installer with desktop and start menu shortcuts.
+- **`LocalIngest-Studio-Linux-v1.0.2.AppImage` (~105 MB)**: Standalone single-file executable for Linux.

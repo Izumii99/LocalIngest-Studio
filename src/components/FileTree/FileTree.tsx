@@ -246,8 +246,8 @@ export const FileTree: React.FC<FileTreeProps> = ({
 
       {/* Left Panel Footer Note */}
       <div className="mt-3 pt-2 border-t border-craft-800 flex items-center justify-between text-[11px] text-craft-500 font-sketch shrink-0">
-        <span>✨ Fast filter with wildcards (*.cs)</span>
-        <span className="text-craft-400 font-mono text-[10px]">v1.0.1</span>
+        <span>Fast filter with wildcards (*.cs)</span>
+        <span className="text-craft-400 font-mono text-[10px]">v1.0.2</span>
       </div>
     </div>
   );

@@ -51,10 +51,12 @@ export interface IngestConfig {
 export interface AppPreferences {
   recentFolders: string[];
   maxFileSizeKB: number;
+  lastOpenedFolder?: string;
+  fileSelectionCache?: Record<string, string[]>;
 }
 
 export interface ElectronAPI {
-  selectDirectory: () => Promise<string | null>;
+  selectDirectory: (defaultPath?: string) => Promise<string | null>;
   scanDirectory: (rootPath: string, options?: ScanOptions) => Promise<FileNode>;
   readFilesContent: (filePaths: string[]) => Promise<Record<string, string>>;
   saveOutputFile: (defaultFileName: string, content: string) => Promise<boolean>;
