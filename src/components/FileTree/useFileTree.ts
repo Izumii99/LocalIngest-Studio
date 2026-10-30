@@ -257,6 +257,34 @@ export function useFileTree(
     });
   }, [updateSelection]);
 
+  // Deselect CI / workflow configurations
+  const excludeCIFiles = useCallback(() => {
+    const ciPattern = /(^\.github[/\\])|(^\.circleci[/\\])|(^\.gitlab-ci\.ya?ml$)|(^azure-pipelines\.ya?ml$)|(^bitbucket-pipelines\.ya?ml$)/i;
+    updateSelection((prev) => {
+      const next = new Set(prev);
+      for (const path of prev) {
+        if (ciPattern.test(path)) {
+          next.delete(path);
+        }
+      }
+      return next;
+    });
+  }, [updateSelection]);
+
+  // Deselect linter, formatting, and compiler configs
+  const excludeLinterFiles = useCallback(() => {
+    const linterPattern = /(^\.eslintrc)|(^\.editorconfig$)|(^\.prettierrc)|(^\.codacy\.ya?ml$)|(^\.stylelintrc)|(^tsconfig.*\.json$)/i;
+    updateSelection((prev) => {
+      const next = new Set(prev);
+      for (const path of prev) {
+        if (linterPattern.test(path)) {
+          next.delete(path);
+        }
+      }
+      return next;
+    });
+  }, [updateSelection]);
+
   // Git-aware: Select only files changed in git
   const selectGitChanged = useCallback(
     (changedRelativePaths: string[]) => {
@@ -349,6 +377,8 @@ export function useFileTree(
     availableExtensions,
     toggleByExtension,
     excludeTestFiles,
+    excludeCIFiles,
+    excludeLinterFiles,
     selectGitChanged,
   };
 }

@@ -22,6 +22,8 @@ interface FileTreeProps {
   availableExtensions?: { ext: string; count: number }[];
   onToggleExtension?: (ext: string) => void;
   onExcludeTests?: () => void;
+  onExcludeCI?: () => void;
+  onExcludeLinters?: () => void;
   gitChangedCount?: number;
   onSelectGitChanged?: () => void;
 }
@@ -46,6 +48,8 @@ export const FileTree: React.FC<FileTreeProps> = ({
   availableExtensions = [],
   onToggleExtension,
   onExcludeTests,
+  onExcludeCI,
+  onExcludeLinters,
   gitChangedCount = 0,
   onSelectGitChanged,
 }) => {
@@ -103,6 +107,30 @@ export const FileTree: React.FC<FileTreeProps> = ({
               data-ext="-Tests"
             >
               -Tests
+            </button>
+          )}
+
+          {onExcludeCI && (
+            <button
+              type="button"
+              onClick={onExcludeCI}
+              className="ext-pill px-2.5 py-1 text-[11px] font-mono font-bold bg-neon-yellow/20 text-neon-yellow border border-neon-yellow/60 rounded-lg shadow-sm hover:scale-105 transition-transform cursor-pointer"
+              title="Deselect CI/workflow configs (.github, .gitlab-ci, azure-pipelines)"
+              data-ext="-CI"
+            >
+              -CI
+            </button>
+          )}
+
+          {onExcludeLinters && (
+            <button
+              type="button"
+              onClick={onExcludeLinters}
+              className="ext-pill px-2.5 py-1 text-[11px] font-mono font-bold bg-neon-mint/20 text-neon-mint border border-neon-mint/60 rounded-lg shadow-sm hover:scale-105 transition-transform cursor-pointer"
+              title="Deselect linter & style configs (.eslintrc, .editorconfig, .prettierrc, .codacy)"
+              data-ext="-Linters"
+            >
+              -Linters
             </button>
           )}
 
@@ -247,7 +275,7 @@ export const FileTree: React.FC<FileTreeProps> = ({
       {/* Left Panel Footer Note */}
       <div className="mt-3 pt-2 border-t border-craft-800 flex items-center justify-between text-[11px] text-craft-500 font-sketch shrink-0">
         <span>Fast filter with wildcards (*.cs)</span>
-        <span className="text-craft-400 font-mono text-[10px]">v1.0.2</span>
+        <span className="text-craft-400 font-mono text-[10px]">v1.0.3</span>
       </div>
     </div>
   );

@@ -10,6 +10,8 @@ const api: ElectronAPI = {
     ipcRenderer.invoke('fs:readFilesContent', filePaths),
   saveOutputFile: (defaultFileName: string, content: string) =>
     ipcRenderer.invoke('dialog:saveFile', defaultFileName, content),
+  saveMultiPartFiles: (baseFileName: string, parts: { fileName: string; content: string }[]) =>
+    ipcRenderer.invoke('dialog:saveMultiPartFiles', baseFileName, parts),
   copyToClipboard: (text: string) =>
     ipcRenderer.invoke('clipboard:write', text),
   getGitStatus: (rootPath: string) =>

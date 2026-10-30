@@ -8,6 +8,8 @@ interface PreviewPanelProps {
   redactSecrets?: boolean;
   onToggleRedactSecrets?: (val: boolean) => void;
   secretsCount?: number;
+  dietMode?: boolean;
+  onToggleDietMode?: (val: boolean) => void;
 }
 
 export const PreviewPanel: React.FC<PreviewPanelProps> = ({
@@ -18,6 +20,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   redactSecrets = true,
   onToggleRedactSecrets,
   secretsCount = 0,
+  dietMode = true,
+  onToggleDietMode,
 }) => {
   const lineCount = content ? content.split('\n').length : 0;
   const charCount = content ? content.length : 0;
@@ -33,7 +37,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           <span className="w-2 h-2 rounded-full bg-neon-mint animate-pulse" title="Live Sync Active" />
         </div>
 
-        {/* Toggles: Mask Secrets & ASCII Tree */}
+        {/* Toggles: Mask Secrets, Diet Mode & ASCII Tree */}
         <div className="flex items-center gap-3">
           {/* Mask Secrets Badge Toggle */}
           {onToggleRedactSecrets && (
@@ -60,6 +64,25 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             </label>
           )}
 
+          {/* Diet Mode (Asset Pruning) Toggle */}
+          {onToggleDietMode && (
+            <label
+              className="flex items-center gap-1.5 cursor-pointer bg-craft-950 px-2.5 py-1 rounded-md border border-craft-750 hover:border-craft-600 transition-colors"
+              title={dietMode ? 'Diet Mode Active: Prunes heavy inline SVGs and Base64 assets' : 'Diet Mode disabled'}
+            >
+              <input
+                type="checkbox"
+                checked={dietMode}
+                onChange={(e) => onToggleDietMode(e.target.checked)}
+                className="rounded text-neon-yellow focus:ring-0 w-3.5 h-3.5 bg-craft-850 border-craft-600 cursor-pointer"
+                id="toggle-diet-mode"
+              />
+              <span className="text-[11px] font-mono text-neon-yellow font-semibold select-none">
+                Diet Mode
+              </span>
+            </label>
+          )}
+
           {/* ASCII Tree Toggle */}
           <label
             className="flex items-center gap-1.5 cursor-pointer bg-craft-950 px-2.5 py-1 rounded-md border border-craft-750 hover:border-craft-600 transition-colors"
@@ -78,6 +101,19 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           </label>
         </div>
       </div>
+
+      {/* High Payload Web Chat Truncation Warning */}
+      {charCount > 700_000 && (
+        <div className="bg-amber-950/80 border-b border-amber-600/50 px-4 py-1.5 flex items-center justify-between text-[11px] font-mono text-amber-300 shrink-0">
+          <div className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span>
+              <strong>Payload Warning:</strong> Context is {(charCount / 1024).toFixed(0)} KB. Web chat UIs (ChatGPT, Claude, Gemini Web) frequently truncate pasted text &gt;700 KB silently.
+            </span>
+          </div>
+          <span className="font-semibold text-amber-200">Use Diet Mode or Export Split</span>
+        </div>
+      )}
 
       {/* Code View Area (Graph Paper Texture with Monospace Syntax Glow) */}
       <div

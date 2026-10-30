@@ -46,6 +46,7 @@ export interface IngestConfig {
   includeStats: boolean;
   maxFileSizeKB: number;
   redactSecrets: boolean;
+  dietMode?: boolean;
 }
 
 export interface AppPreferences {
@@ -53,6 +54,7 @@ export interface AppPreferences {
   maxFileSizeKB: number;
   lastOpenedFolder?: string;
   fileSelectionCache?: Record<string, string[]>;
+  dietMode?: boolean;
 }
 
 export interface ElectronAPI {
@@ -60,6 +62,7 @@ export interface ElectronAPI {
   scanDirectory: (rootPath: string, options?: ScanOptions) => Promise<FileNode>;
   readFilesContent: (filePaths: string[]) => Promise<Record<string, string>>;
   saveOutputFile: (defaultFileName: string, content: string) => Promise<boolean>;
+  saveMultiPartFiles?: (baseFileName: string, parts: { fileName: string; content: string }[]) => Promise<boolean>;
   copyToClipboard: (text: string) => Promise<void>;
   getGitStatus: (rootPath: string) => Promise<GitStatusResult>;
   getPreferences: () => Promise<AppPreferences>;

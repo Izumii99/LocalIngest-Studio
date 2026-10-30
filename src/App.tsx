@@ -6,7 +6,7 @@ import { PreviewPanel } from './components/PreviewPanel.tsx';
 import { SettingsModal } from './components/SettingsModal.tsx';
 import { useFileTree } from './components/FileTree/useFileTree.ts';
 import { countTokens } from '../electron/services/tokenizer.ts';
-import { formatOutput } from '../electron/services/formatter.ts';
+import { formatOutput, splitOutputIntoParts } from '../electron/services/formatter.ts';
 import { scanForSecrets } from './services/secretDetector.ts';
 import type { FileNode, OutputFormat, ScanOptions } from './types/index.ts';
 
@@ -30,6 +30,14 @@ export const App: React.FC = () => {
     }
   });
   const [redactSecrets, setRedactSecrets] = useState<boolean>(true);
+  const [dietMode, setDietMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('localingest_diet_mode');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
   const [gitChangedFiles, setGitChangedFiles] = useState<string[]>([]);
 
   // Persistent Recent Folders
@@ -68,6 +76,12 @@ export const App: React.FC = () => {
                 );
                 const merged = { ...prefs.fileSelectionCache, ...localCache };
                 localStorage.setItem('localingest_file_selection_cache', JSON.stringify(merged));
+              } catch {}
+            }
+            if (typeof prefs.dietMode === 'boolean') {
+              setDietMode(prefs.dietMode);
+              try {
+                localStorage.setItem('localingest_diet_mode', String(prefs.dietMode));
               } catch {}
             }
           }
@@ -112,6 +126,16 @@ export const App: React.FC = () => {
     }
   }, []);
 
+  const handleToggleDietMode = useCallback((active: boolean) => {
+    setDietMode(active);
+    try {
+      localStorage.setItem('localingest_diet_mode', String(active));
+    } catch {}
+    if (window.electronAPI?.setPreferences) {
+      window.electronAPI.setPreferences({ dietMode: active }).catch(console.error);
+    }
+  }, []);
+
   const [scanOptions, setScanOptions] = useState<ScanOptions>({
     respectGitignore: true,
     customIgnoreRules: [],
@@ -148,6 +172,8 @@ export const App: React.FC = () => {
     availableExtensions,
     toggleByExtension,
     excludeTestFiles,
+    excludeCIFiles,
+    excludeLinterFiles,
     selectGitChanged,
   } = useFileTree(rootNode, maxFileSizeKB, currentPath);
 
@@ -345,6 +371,7 @@ export const App: React.FC = () => {
       selectedPaths,
       maxFileSizeKB,
       redactSecrets,
+      dietMode,
     });
   }, [
     rootNode,
@@ -355,6 +382,7 @@ export const App: React.FC = () => {
     selectedPaths,
     maxFileSizeKB,
     redactSecrets,
+    dietMode,
   ]);
 
   // Estimate total tokens real-time using js-tiktoken
@@ -405,6 +433,66 @@ export const App: React.FC = () => {
       setIsExporting(false);
     }
   }, [formattedOutput, format, rootNode]);
+
+  // Export Split Parts (Modular Multi-Part Ingest for large codebases)
+  const handleExportSplit = useCallback(async () => {
+    if (!rootNode || selectedFiles.length === 0) return;
+    setIsExporting(true);
+    try {
+      const ext = format === 'xml' ? 'xml' : format === 'markdown' ? 'md' : 'txt';
+      const projectName = rootNode?.name || 'codebase';
+      const defaultFileName = `${projectName}-context.${ext}`;
+
+      const items = selectedFiles.map((file) => ({
+        relativePath: file.relativePath,
+        content: loadedContents[file.path] || '// Loading file content...',
+        size: file.size,
+      }));
+
+      const parts = splitOutputIntoParts(
+        items,
+        {
+          format,
+          includeAsciiTree,
+          treeRoot: rootNode,
+          selectedPaths,
+          maxFileSizeKB,
+          redactSecrets,
+          dietMode,
+        },
+        projectName
+      );
+
+      if (window.electronAPI?.saveMultiPartFiles) {
+        await window.electronAPI.saveMultiPartFiles(defaultFileName, parts);
+      } else {
+        for (const p of parts) {
+          const blob = new Blob([p.content], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = p.fileName;
+          a.click();
+          URL.revokeObjectURL(url);
+          await new Promise((r) => setTimeout(r, 200));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to export split parts:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [
+    rootNode,
+    selectedFiles,
+    loadedContents,
+    format,
+    includeAsciiTree,
+    selectedPaths,
+    maxFileSizeKB,
+    redactSecrets,
+    dietMode,
+  ]);
 
   return (
     <div
@@ -464,6 +552,8 @@ export const App: React.FC = () => {
               availableExtensions={availableExtensions}
               onToggleExtension={toggleByExtension}
               onExcludeTests={excludeTestFiles}
+              onExcludeCI={excludeCIFiles}
+              onExcludeLinters={excludeLinterFiles}
               gitChangedCount={gitChangedFiles.length}
               onSelectGitChanged={() => selectGitChanged(gitChangedFiles)}
             />
@@ -480,6 +570,7 @@ export const App: React.FC = () => {
               onFormatChange={setFormat}
               onCopy={handleCopy}
               onExport={handleExport}
+              onExportSplit={handleExportSplit}
               isCopied={isCopied}
               isExporting={isExporting}
               maxFileSizeKB={maxFileSizeKB}
@@ -495,6 +586,8 @@ export const App: React.FC = () => {
               redactSecrets={redactSecrets}
               onToggleRedactSecrets={setRedactSecrets}
               secretsCount={secretsFindings.length}
+              dietMode={dietMode}
+              onToggleDietMode={handleToggleDietMode}
             />
           </section>
         </div>

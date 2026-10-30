@@ -43,6 +43,7 @@ interface StatsBarProps {
   onFormatChange: (fmt: OutputFormat) => void;
   onCopy: () => void;
   onExport: () => void;
+  onExportSplit?: () => void;
   isCopied: boolean;
   isExporting: boolean;
   maxFileSizeKB: number;
@@ -59,6 +60,7 @@ export const StatsBar: React.FC<StatsBarProps> = ({
   onFormatChange,
   onCopy,
   onExport,
+  onExportSplit,
   isCopied,
   isExporting,
   maxFileSizeKB,
@@ -136,6 +138,21 @@ export const StatsBar: React.FC<StatsBarProps> = ({
           </div>
         </div>
       </div>
+
+      {/* High Payload Warning Banner (Web Chat Truncation Risk) */}
+      {selectedSizeBytes > 700 * 1024 && (
+        <div className="bg-amber-950/70 border-2 border-amber-500/60 rounded-xl px-4 py-2 flex items-center justify-between flex-wrap gap-2 text-xs font-mono text-amber-200 shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-base text-amber-400">⚠️</span>
+            <span>
+              <strong>Payload Warning ({payload.value} {payload.unit}):</strong> Web chats (ChatGPT, Claude, Gemini Web) frequently truncate pasted text &gt;700 KB silently.
+            </span>
+          </div>
+          <span className="text-[11px] text-amber-300 font-bold bg-amber-900/60 px-2 py-0.5 rounded border border-amber-600/50">
+            Recommend: Enable Diet Mode or Export Split
+          </span>
+        </div>
+      )}
 
       {/* Context Options Bar (Format Tabs, Max Size Slider, Action Buttons) */}
       <div className="bg-craft-850/90 border-2 border-craft-700/90 p-3 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
@@ -267,6 +284,20 @@ export const StatsBar: React.FC<StatsBarProps> = ({
             </svg>
             <span>{isExporting ? 'Exporting…' : 'Export'}</span>
           </button>
+
+          {/* Export Split Button when payload is large (> 450 KB) */}
+          {selectedSizeBytes > 450 * 1024 && onExportSplit && (
+            <button
+              type="button"
+              onClick={onExportSplit}
+              disabled={selectedCount === 0 || isExporting}
+              className="px-3.5 py-1.5 bg-craft-800 hover:bg-craft-750 text-neon-yellow font-bold text-xs rounded-xl border-2 border-neon-yellow/70 shadow-brutal-sm hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Split codebase into multiple safe parts (< 450 KB each) with manifest linkers"
+              id="btn-export-split"
+            >
+              <span>Export Split</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

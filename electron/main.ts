@@ -130,7 +130,7 @@ ipcMain.handle('fs:readFilesContent', async (_event, filePaths: string[]) => {
   return results;
 });
 
-// IPC Handler: Save Output File
+// IPC Handler: Save Output File (Safe Stream / Flush Safety)
 ipcMain.handle('dialog:saveFile', async (_event, defaultFileName: string, content: string) => {
   if (!mainWindow) return false;
   const result = await dialog.showSaveDialog(mainWindow, {
@@ -146,9 +146,50 @@ ipcMain.handle('dialog:saveFile', async (_event, defaultFileName: string, conten
     return false;
   }
 
-  await fs.writeFile(result.filePath, content, 'utf-8');
+  const fileHandle = await fs.open(result.filePath, 'w');
+  try {
+    await fileHandle.writeFile(content, 'utf-8');
+    await fileHandle.sync();
+  } finally {
+    await fileHandle.close();
+  }
   return true;
 });
+
+// IPC Handler: Save Multi-Part Files (Safe Split Export)
+ipcMain.handle(
+  'dialog:saveMultiPartFiles',
+  async (_event, baseFileName: string, parts: { fileName: string; content: string }[]) => {
+    if (!mainWindow || parts.length === 0) return false;
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: 'Export Split Codebase Parts (Select folder and base name)',
+      defaultPath: baseFileName,
+      filters: [
+        { name: 'Text / XML / Markdown', extensions: ['xml', 'md', 'txt'] },
+        { name: 'All Files', extensions: ['*'] },
+      ],
+    });
+
+    if (result.canceled || !result.filePath) {
+      return false;
+    }
+
+    const baseDir = path.dirname(result.filePath);
+    const parsed = path.parse(result.filePath);
+
+    for (let i = 0; i < parts.length; i++) {
+      const partPath = path.join(baseDir, `${parsed.name}-part${i + 1}${parsed.ext || '.xml'}`);
+      const fileHandle = await fs.open(partPath, 'w');
+      try {
+        await fileHandle.writeFile(parts[i].content, 'utf-8');
+        await fileHandle.sync();
+      } finally {
+        await fileHandle.close();
+      }
+    }
+    return true;
+  }
+);
 
 // IPC Handler: Clipboard
 ipcMain.handle('clipboard:write', async (_event, text: string) => {
@@ -231,6 +272,7 @@ async function loadPreferences(): Promise<AppPreferences> {
             !Array.isArray(parsed.fileSelectionCache)
               ? parsed.fileSelectionCache
               : {},
+          dietMode: typeof parsed.dietMode === 'boolean' ? parsed.dietMode : true,
         };
       }
     } catch {
@@ -242,6 +284,7 @@ async function loadPreferences(): Promise<AppPreferences> {
     recentFolders: [],
     maxFileSizeKB: 100,
     fileSelectionCache: {},
+    dietMode: true,
   };
 }
 
@@ -261,6 +304,7 @@ async function savePreferences(prefs: Partial<AppPreferences>): Promise<AppPrefe
       prefs.fileSelectionCache && typeof prefs.fileSelectionCache === 'object'
         ? { ...current.fileSelectionCache, ...prefs.fileSelectionCache }
         : current.fileSelectionCache,
+    dietMode: typeof prefs.dietMode === 'boolean' ? prefs.dietMode : current.dietMode,
   };
 
   const targetPath = getPreferencesFilePath();
