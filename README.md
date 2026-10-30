@@ -4,6 +4,12 @@
   <p>Tactile Local Codebase-to-LLM Context Engine with Interactive 3-State File Tree & Secret Redaction</p>
 
   <p>
+    <a href="https://github.com/Izumii99/LocalIngest-Studio/releases"><img src="https://img.shields.io/github/v/release/Izumii99/LocalIngest-Studio?color=A855F7&style=for-the-badge&logo=github" alt="Latest Release" /></a>
+    <a href="https://github.com/Izumii99/LocalIngest-Studio/releases"><img src="https://img.shields.io/github/downloads/Izumii99/LocalIngest-Studio/total?color=A855F7&style=for-the-badge&logo=github" alt="Total Downloads" /></a>
+    <a href="https://sociabuzz.com/izumi99/tribe" target="_blank"><img src="https://img.shields.io/badge/SociaBuzz-Support%20Me-48C02B?style=for-the-badge&logo=buymeacoffee&logoColor=white" alt="Support on SociaBuzz" /></a>
+  </p>
+
+  <p>
     <img src="https://img.shields.io/badge/Electron-45.0-47848F?logo=electron&logoColor=white" alt="Electron" />
     <img src="https://img.shields.io/badge/React-19.3-61DAFB?logo=react&logoColor=black" alt="React 19" />
     <img src="https://img.shields.io/badge/TypeScript-7.0-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
