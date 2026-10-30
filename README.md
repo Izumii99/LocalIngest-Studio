@@ -6,7 +6,6 @@
   <p>
     <a href="https://github.com/Izumii99/LocalIngest-Studio/releases"><img src="https://img.shields.io/github/v/release/Izumii99/LocalIngest-Studio?color=A855F7&style=for-the-badge&logo=github" alt="Latest Release" /></a>
     <a href="https://github.com/Izumii99/LocalIngest-Studio/releases"><img src="https://img.shields.io/github/downloads/Izumii99/LocalIngest-Studio/total?color=A855F7&style=for-the-badge&logo=github" alt="Total Downloads" /></a>
-    <a href="https://sociabuzz.com/izumi99/tribe" target="_blank"><img src="https://img.shields.io/badge/SociaBuzz-Support%20Me-48C02B?style=for-the-badge&logo=buymeacoffee&logoColor=white" alt="Support on SociaBuzz" /></a>
   </p>
 
   <p>
@@ -30,6 +29,22 @@
 LocalIngest Studio is a high-speed desktop application designed to scan, filter, and compile local codebases into structured prompts optimized for Large Language Models including **Google Gemini**, **Anthropic Claude 3.5**, and **OpenAI GPT-4o**.
 
 Combining the interactive ergonomics of desktop software with the robust extraction pipeline of **GitIngest** and **Repomix**, the application operates entirely offline on local hardware, ensuring complete source privacy.
+
+---
+
+<div align="center">
+  <h3>☕ Support the Project / Traktir Kopi</h3>
+  <p>A little coffee fuels late-night coding sessions and keeps updates rolling! ✨</p>
+  <p>
+    <a href="https://sociabuzz.com/izumi99/tribe" target="_blank">
+      <img src="https://img.shields.io/badge/SociaBuzz-Treat_Warm_Coffee_><-48C02B?style=for-the-badge&logo=buymeacoffee&logoColor=white" height="36" alt="Treat Warm Coffee on SociaBuzz" />
+    </a>
+    &nbsp;
+    <a href="https://sociabuzz.com/izumi99/support" target="_blank">
+      <img src="https://img.shields.io/badge/Give_a_Tip-Direct_Support-22c55e?style=for-the-badge&logo=heart&logoColor=white" height="36" alt="Direct Support on SociaBuzz" />
+    </a>
+  </p>
+</div>
 
 ---
 
