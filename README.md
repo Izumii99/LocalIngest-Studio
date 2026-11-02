@@ -34,7 +34,7 @@ Combining the interactive ergonomics of desktop software with the robust extract
 
 <div align="center">
   <h3>☕ Support the Project / Traktir Kopi</h3>
-  <p>A little coffee fuels late-night coding sessions and keeps updates rolling! ✨</p>
+  <p>Optional support for hosting and ongoing maintenance.</p>
   <p>
     <a href="https://sociabuzz.com/izumi99/tribe" target="_blank">
       <img src="https://img.shields.io/badge/SociaBuzz-Treat_Warm_Coffee_><-48C02B?style=for-the-badge&logo=buymeacoffee&logoColor=white" height="36" alt="Treat Warm Coffee on SociaBuzz" />
@@ -50,14 +50,14 @@ Combining the interactive ergonomics of desktop software with the robust extract
 
 ## Key Features
 
-- **Multi-Platform Standalone Binaries**: Distributed as clean, self-contained single-file executables without runtime folder clutter—portable `.exe` on Windows and `.AppImage` on Linux.
+- **Multi-Platform Standalone Binaries**: Distributed as clean, self-contained single-file executables without runtime folder clutter: portable `.exe` on Windows and `.AppImage` on Linux.
 - **Craft Cardboard & Neon Highlighter Aesthetic**: Tactile dark kraft base (`#0e0d0c`) with brutalist zero-blur marker drop shadows, striped washi tape pins, and hand-sketched organic contours.
 - **Interactive 3-State File Tree**: Recursive directory tree with tri-state checkbox tracking (`checked`, `unchecked`, `indeterminate`). Selecting a parent directory automatically synchronizes all nested children.
 - **Git-Aware Selection**: One-click selection to isolate and export only modified, unstaged, or untracked files discovered through local `git status --porcelain`.
-- **Zero-Leak Secret Redaction**: Real-time heuristic credential detector that identifies and masks sensitive API keys, JWTs, private keys, and environment tokens with `[REDACTED_SECRET: TYPE]` placeholders before clipboard transfer.
+- **Secret Redaction**: Real-time heuristic credential detector that identifies and masks sensitive API keys, JWTs, private keys, and environment tokens with `[REDACTED_SECRET: TYPE]` placeholders before clipboard transfer.
 - **GitIngest-Style Discrete Threshold Slider**: Stepped threshold filtering (10 KB, 20 KB, 50 KB, 100 KB, 200 KB, 500 KB, 1 MB, 2 MB, 5 MB, 10 MB, 20 MB, 50 MB, 100 MB, and Unlimited) with visual sticker warning tags on oversized files.
 - **Real-Time Token Calculation**: Native offline token counting using `js-tiktoken` (`cl100k_base` / `o200k_base`) with dynamic threshold warnings.
-- **Instant Codebase Rescan & Refresh**: One-click tactile buttons and global `F5` / `Ctrl+R` shortcuts that flush memory cache to re-sync external disk modifications and unstaged Git files immediately.
+- **Instant Codebase Rescan & Refresh**: Global `F5` / `Ctrl+R` shortcuts and toolbar controls flush the memory cache to re-sync external disk modifications and unstaged Git files immediately.
 - **Multi-Format Output Pipeline**: Export cleanly structured context in Repomix-style XML, GitHub Flavored Markdown, or Plain Text with optional ASCII directory visualization.
 
 ---
@@ -111,44 +111,44 @@ File: src/index.ts
 LocalIngest-Studio/
 ├── .github/
 │   └── workflows/
-│       ├── checks.yml                 — Automated CI & engine test suite
-│       └── release.yml                — GitHub Actions standalone compiler & release publisher
+│       ├── checks.yml                 : Automated CI & engine test suite
+│       └── release.yml                : GitHub Actions standalone compiler & release publisher
 ├── electron/
-│   ├── main.ts                        — Native window lifecycle & IPC bridge handlers
-│   ├── preload.ts                     — Context isolation bridge
+│   ├── main.ts                        : Native window lifecycle & IPC bridge handlers
+│   ├── preload.ts                     : Context isolation bridge
 │   └── services/
-│       ├── scanner.ts                 — Recursive directory crawler with .gitignore & binary filter
-│       ├── tokenizer.ts               — js-tiktoken BPE token estimation engine
-│       ├── formatter.ts               — Multi-format context builder (XML, MD, Plain)
-│       └── self-check.ts              — Runnable assert-based test runner
+│       ├── scanner.ts                 : Recursive directory crawler with .gitignore & binary filter
+│       ├── tokenizer.ts               : js-tiktoken BPE token estimation engine
+│       ├── formatter.ts               : Multi-format context builder (XML, MD, Plain)
+│       └── self-check.ts              : Runnable assert-based test runner
 ├── src/
 │   ├── components/
 │   │   ├── FileTree/
-│   │   │   ├── FileTree.tsx           — Search, extension pills, & selection strip
-│   │   │   ├── TreeNode.tsx           — 3-state checkbox node renderer with warning badges
-│   │   │   └── useFileTree.ts         — Recursive tri-state tree state management hook
-│   │   ├── HeaderBar.tsx              — Window controls, brand icon, and path chip
-│   │   ├── StatsBar.tsx               — Pinned index cards, format switcher, and felt slider
-│   │   ├── PreviewPanel.tsx           — Graph paper notebook preview with secret toggle
-│   │   └── SettingsModal.tsx          — Custom ignore patterns configuration dialog
+│   │   │   ├── FileTree.tsx           : Search, extension pills, & selection strip
+│   │   │   ├── TreeNode.tsx           : 3-state checkbox node renderer with warning badges
+│   │   │   └── useFileTree.ts         : Recursive tri-state tree state management hook
+│   │   ├── HeaderBar.tsx              : Window controls, brand icon, and path chip
+│   │   ├── StatsBar.tsx               : Pinned index cards, format switcher, and felt slider
+│   │   ├── PreviewPanel.tsx           : Graph paper notebook preview with secret toggle
+│   │   └── SettingsModal.tsx          : Custom ignore patterns configuration dialog
 │   ├── services/
-│   │   └── secretDetector.ts          — Regex heuristic credentials & token scanner
+│   │   └── secretDetector.ts          : Regex heuristic credentials & token scanner
 │   ├── types/
-│   │   └── index.ts                   — Unified TypeScript interface definitions
-│   ├── App.tsx                        — Two-column grid workspace shell
-│   ├── index.css                      — Craft Cardboard & Neon Highlighter design system
-│   └── main.tsx                       — React DOM entry point
+│   │   └── index.ts                   : Unified TypeScript interface definitions
+│   ├── App.tsx                        : Two-column grid workspace shell
+│   ├── index.css                      : Craft Cardboard & Neon Highlighter design system
+│   └── main.tsx                       : React DOM entry point
 ├── tools/
-│   └── build_all.ps1                  — 1-click standalone portable packager & cleaner
-├── .codacy.yml                        — Codacy static analysis configuration & build exclusions
-├── .editorconfig                      — Cross-platform whitespace, indentation, & line-ending spec
-├── .eslintrc.json                     — ESLint quality profile for static analysis
-├── .gitignore                         — Build output, dependency, and release exclusions
-├── LICENSE                            — MIT open-source license
-├── package.json                       — Node dependencies, scripts, and electron-builder spec
-├── RELEASE_NOTES.md                   — User-facing changelog and release descriptions
-├── tsconfig.json                      — TypeScript compiler configuration
-└── vite.config.ts                     — Vite bundling configuration with Electron plugin
+│   └── build_all.ps1                  : 1-click standalone portable packager & cleaner
+├── .codacy.yml                        : Codacy static analysis configuration & build exclusions
+├── .editorconfig                      : Cross-platform whitespace, indentation, & line-ending spec
+├── .eslintrc.json                     : ESLint quality profile for static analysis
+├── .gitignore                         : Build output, dependency, and release exclusions
+├── LICENSE                            : MIT open-source license
+├── package.json                       : Node dependencies, scripts, and electron-builder spec
+├── RELEASE_NOTES.md                   : User-facing changelog and release descriptions
+├── tsconfig.json                      : TypeScript compiler configuration
+└── vite.config.ts                     : Vite bundling configuration with Electron plugin
 ```
 
 ---
@@ -214,4 +214,4 @@ chmod +x release/LocalIngest-Studio-Linux-v1.0.0.AppImage
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE) — Copyright (c) 2026 Izumii99.
+This project is licensed under the [MIT License](LICENSE), Copyright (c) 2026 Izumii99.
